@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RobGame - by Robin Pit</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-gamepad"></i>
+                <span>RobGame</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link active">Accueil</a>
+                <a href="#games" class="nav-link">Jeux</a>
+                <a href="#about" class="nav-link">À propos</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Section Hero -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">RobGame</span>
+                    <span class="subtitle">by Robin Pit</span>
+                </h1>
+                <p class="hero-description">
+                    Découvrez une collection de mini-jeux addictifs, optimisés pour mobile et PC.
+                    Jouez, amusez-vous et défiez vos amis !
+                </p>
+                <a href="#games" class="cta-button">
+                    <i class="fas fa-play"></i>
+                    Commencer à jouer
+                </a>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-icons">
+                    <i class="fas fa-dice"></i>
+                    <i class="fas fa-puzzle-piece"></i>
+                    <i class="fas fa-rocket"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Jeux -->
+        <section id="games" class="games-section">
+            <div class="container">
+                <h2 class="section-title">Mini-Jeux Disponibles</h2>
+                <div class="games-grid">
+                    
+                    <!-- Snake Game -->
+                    <div class="game-card" data-game="snake">
+                        <div class="game-icon">
+                            <i class="fas fa-snake"></i>
+                        </div>
+                        <h3>Snake Classic</h3>
+                        <p>Le classique jeu du serpent revisité avec des graphismes modernes</p>
+                        <div class="game-stats">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                            <span><i class="fas fa-desktop"></i> PC</span>
+                        </div>
+                        <button class="play-button" onclick="startGame('snake')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                    </div>
+
+                    <!-- Tetris Game -->
+                    <div class="game-card" data-game="tetris">
+                        <div class="game-icon">
+                            <i class="fas fa-th-large"></i>
+                        </div>
+                        <h3>Tetris Pro</h3>
+                        <p>Empilez les blocs et créez des lignes complètes dans ce puzzle addictif</p>
+                        <div class="game-stats">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                            <span><i class="fas fa-desktop"></i> PC</span>
+                        </div>
+                        <button class="play-button" onclick="startGame('tetris')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                    </div>
+
+                    <!-- Flappy Bird Game -->
+                    <div class="game-card" data-game="flappy">
+                        <div class="game-icon">
+                            <i class="fas fa-dove"></i>
+                        </div>
+                        <h3>Flappy Bird</h3>
+                        <p>Guidez l'oiseau à travers les obstacles dans ce défi de précision</p>
+                        <div class="game-stats">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                            <span><i class="fas fa-desktop"></i> PC</span>
+                        </div>
+                        <button class="play-button" onclick="startGame('flappy')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                    </div>
+
+                    <!-- 2048 Game -->
+                    <div class="game-card" data-game="2048">
+                        <div class="game-icon">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <h3>2048 Challenge</h3>
+                        <p>Combinez les nombres pour atteindre le mythique 2048</p>
+                        <div class="game-stats">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                            <span><i class="fas fa-desktop"></i> PC</span>
+                        </div>
+                        <button class="play-button" onclick="startGame('2048')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                    </div>
+
+                    <!-- Memory Game -->
+                    <div class="game-card" data-game="memory">
+                        <div class="game-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>Memory Master</h3>
+                        <p>Testez votre mémoire en retrouvant les paires de cartes</p>
+                        <div class="game-stats">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                            <span><i class="fas fa-desktop"></i> PC</span>
+                        </div>
+                        <button class="play-button" onclick="startGame('memory')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                    </div>
+
+                    <!-- Pong Game -->
+                    <div class="game-card" data-game="pong">
+                        <div class="game-icon">
+                            <i class="fas fa-table-tennis"></i>
+                        </div>
+                        <h3>Pong Retro</h3>
+                        <p>Le légendaire jeu de ping-pong en version moderne</p>
+                        <div class="game-stats">
+                            <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                            <span><i class="fas fa-desktop"></i> PC</span>
+                        </div>
+                        <button class="play-button" onclick="startGame('pong')">
+                            <i class="fas fa-play"></i> Jouer
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Section À propos -->
+        <section id="about" class="about-section">
+            <div class="container">
+                <h2 class="section-title">À Propos de RobGame</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <h3>Une Expérience de Jeu Unique</h3>
+                        <p>
+                            RobGame est une plateforme de mini-jeux développée avec passion par Robin Pit. 
+                            Notre objectif est de vous offrir des jeux classiques revisités avec une interface 
+                            moderne et une expérience utilisateur exceptionnelle.
+                        </p>
+                        <div class="features">
+                            <div class="feature">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Optimisé Mobile</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-rocket"></i>
+                                <span>Performance Optimale</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-palette"></i>
+                                <span>Design Moderne</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="about-visual">
+                        <div class="stats-card">
+                            <div class="stat">
+                                <span class="stat-number">6</span>
+                                <span class="stat-label">Mini-Jeux</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">100%</span>
+                                <span class="stat-label">Gratuit</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">∞</span>
+                                <span class="stat-label">Plaisir</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de jeu -->
+    <div id="gameModal" class="game-modal">
+        <div class="game-modal-content">
+            <div class="game-modal-header">
+                <h3 id="gameTitle">Jeu</h3>
+                <button class="close-button" onclick="closeGame()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="game-container">
+                <canvas id="gameCanvas"></canvas>
+                <div id="gameUI" class="game-ui">
+                    <div class="score-display">
+                        Score: <span id="scoreValue">0</span>
+                    </div>
+                    <div class="game-controls">
+                        <button id="pauseButton" class="control-button">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button id="restartButton" class="control-button">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 RobGame - by Robin Pit. Tous droits réservés.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-discord"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/games/snake.js"></script>
+    <script src="js/games/tetris.js"></script>
+    <script src="js/games/flappy.js"></script>
+    <script src="js/games/2048.js"></script>
+    <script src="js/games/memory.js"></script>
+    <script src="js/games/pong.js"></script>
+</body>
+</html>
