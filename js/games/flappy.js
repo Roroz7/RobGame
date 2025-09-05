@@ -258,20 +258,31 @@ class FlappyGame {
     gameOver() {
         this.gameRunning = false;
         
+        // Sauvegarder le score si l'utilisateur est connecté
+        if (typeof saveScore === 'function') {
+            saveScore('flappy', this.score);
+        }
+        
+        // Overlay de game over
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.ctx.fillStyle = '#f8fafc';
-        this.ctx.font = 'bold 28px Poppins';
+        this.ctx.font = 'bold 24px Poppins';
         this.ctx.textAlign = 'center';
         this.ctx.fillText('Game Over!', this.canvas.width / 2, this.canvas.height / 2 - 40);
         
         this.ctx.font = '18px Poppins';
         this.ctx.fillStyle = '#cbd5e1';
-        this.ctx.fillText(`Score Final: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.fillText('Cliquez pour recommencer', this.canvas.width / 2, this.canvas.height / 2 + 40);
         
-        this.ctx.font = '14px Poppins';
-        this.ctx.fillText('Cliquez sur Restart pour rejouer', this.canvas.width / 2, this.canvas.height / 2 + 40);
+        // Ajouter un handler pour recommencer
+        this.restartHandler = () => {
+            this.restart();
+        };
+        
+        addGameEventListener(this.canvas, 'click', this.restartHandler);
     }
     
     togglePause() {

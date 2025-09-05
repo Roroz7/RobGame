@@ -284,6 +284,202 @@ function showMaintenance(gameName) {
     gameContext.fillText('Nous travaillons sur des améliorations', gameCanvas.width / 2, gameCanvas.height / 2 + 45);
 }
 
+// Système d'authentification utilisateur
+let currentUser = null;
+let users = JSON.parse(localStorage.getItem('robgame_users')) || {};
+let scores = JSON.parse(localStorage.getItem('robgame_scores')) || {
+    snake: [],
+    tetris: [],
+    flappy: [],
+    '2048': [],
+    memory: [],
+    pong: []
+};
+
+// Vérifier si un utilisateur est connecté au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('robgame_current_user');
+    if (savedUser) {
+        currentUser = savedUser;
+        updateUserInterface();
+    }
+    loadLeaderboards();
+});
+
+function openAuthModal(mode) {
+    document.getElementById('authModal').style.display = 'block';
+    switchAuthMode(mode);
+}
+
+function closeAuthModal() {
+    document.getElementById('authModal').style.display = 'none';
+    clearAuthForms();
+}
+
+function switchAuthMode(mode) {
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+    
+    if (mode === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        authTitle.textContent = 'Connexion';
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        authTitle.textContent = 'Inscription';
+    }
+}
+
+function clearAuthForms() {
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('registerUsername').value = '';
+    document.getElementById('registerEmail').value = '';
+    document.getElementById('registerPassword').value = '';
+    document.getElementById('registerConfirmPassword').value = '';
+}
+
+function register() {
+    const username = document.getElementById('registerUsername').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
+    
+    if (!username || !email || !password) {
+        alert('Veuillez remplir tous les champs');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        alert('Les mots de passe ne correspondent pas');
+        return;
+    }
+    
+    if (users[username]) {
+        alert('Ce nom d\'utilisateur existe déjà');
+        return;
+    }
+    
+    // Créer le compte
+    users[username] = {
+        email: email,
+        password: password, // En production, il faudrait hasher le mot de passe
+        createdAt: new Date().toISOString()
+    };
+    
+    localStorage.setItem('robgame_users', JSON.stringify(users));
+    
+    alert('Compte créé avec succès !');
+    switchAuthMode('login');
+}
+
+function login() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!username || !password) {
+        alert('Veuillez remplir tous les champs');
+        return;
+    }
+    
+    if (!users[username] || users[username].password !== password) {
+        alert('Nom d\'utilisateur ou mot de passe incorrect');
+        return;
+    }
+    
+    // Connexion réussie
+    currentUser = username;
+    localStorage.setItem('robgame_current_user', username);
+    updateUserInterface();
+    closeAuthModal();
+}
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('robgame_current_user');
+    updateUserInterface();
+}
+
+function updateUserInterface() {
+    const loggedOut = document.getElementById('userLoggedOut');
+    const loggedIn = document.getElementById('userLoggedIn');
+    const usernameSpan = document.getElementById('currentUsername');
+    
+    if (currentUser) {
+        loggedOut.style.display = 'none';
+        loggedIn.style.display = 'flex';
+        usernameSpan.textContent = currentUser;
+    } else {
+        loggedOut.style.display = 'flex';
+        loggedIn.style.display = 'none';
+    }
+}
+
+function saveScore(game, score) {
+    if (!currentUser) {
+        return; // Pas de sauvegarde si pas connecté
+    }
+    
+    const scoreEntry = {
+        username: currentUser,
+        score: score,
+        date: new Date().toISOString()
+    };
+    
+    if (!scores[game]) {
+        scores[game] = [];
+    }
+    
+    scores[game].push(scoreEntry);
+    scores[game].sort((a, b) => b.score - a.score); // Trier par score décroissant
+    scores[game] = scores[game].slice(0, 10); // Garder seulement le top 10
+    
+    localStorage.setItem('robgame_scores', JSON.stringify(scores));
+    loadLeaderboards();
+}
+
+function showLeaderboard(game) {
+    // Masquer tous les tableaux
+    document.querySelectorAll('.leaderboard-table').forEach(table => {
+        table.classList.remove('active');
+    });
+    
+    // Masquer tous les boutons actifs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Afficher le tableau sélectionné
+    document.getElementById(`leaderboard-${game}`).classList.add('active');
+    
+    // Activer le bouton correspondant
+    event.target.classList.add('active');
+}
+
+function loadLeaderboards() {
+    Object.keys(scores).forEach(game => {
+        const tableElement = document.getElementById(`leaderboard-${game}`);
+        
+        if (scores[game].length === 0) {
+            tableElement.innerHTML = '<div class="no-scores">Aucun score enregistré pour ce jeu</div>';
+        } else {
+            let html = '';
+            scores[game].forEach((entry, index) => {
+                html += `
+                    <div class="score-entry">
+                        <div class="score-rank">#${index + 1}</div>
+                        <div class="score-username">${entry.username}</div>
+                        <div class="score-value">${entry.score}</div>
+                    </div>
+                `;
+            });
+            tableElement.innerHTML = html;
+        }
+    });
+}
+
 // Panel Admin
 const adminCredentials = {
     id: 'admin',

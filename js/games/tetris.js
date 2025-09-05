@@ -336,6 +336,12 @@ class TetrisGame {
     gameOver() {
         this.gameRunning = false;
         
+        // Sauvegarder le score si l'utilisateur est connecté
+        if (typeof saveScore === 'function') {
+            saveScore('tetris', this.score);
+        }
+        
+        // Overlay de game over
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
@@ -344,11 +350,17 @@ class TetrisGame {
         this.ctx.textAlign = 'center';
         this.ctx.fillText('Game Over!', this.canvas.width / 2, this.canvas.height / 2 - 40);
         
-        this.ctx.font = '16px Poppins';
+        this.ctx.font = '18px Poppins';
         this.ctx.fillStyle = '#cbd5e1';
         this.ctx.fillText(`Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2);
-        this.ctx.fillText(`Niveau: ${this.level}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
-        this.ctx.fillText(`Lignes: ${this.lines}`, this.canvas.width / 2, this.canvas.height / 2 + 40);
+        this.ctx.fillText('Cliquez pour recommencer', this.canvas.width / 2, this.canvas.height / 2 + 40);
+        
+        // Ajouter un handler pour recommencer
+        this.restartHandler = () => {
+            this.restart();
+        };
+        
+        addGameEventListener(this.canvas, 'click', this.restartHandler);
     }
     
     togglePause() {
@@ -359,7 +371,6 @@ class TetrisGame {
     }
     
     restart() {
-        this.board = Array(this.rows).fill().map(() => Array(this.cols).fill(0));
         this.currentPiece = null;
         this.nextPiece = null;
         this.score = 0;
@@ -372,7 +383,6 @@ class TetrisGame {
         updateScore(this.score);
         this.start();
     }
-}
 
 function initTetrisGame() {
     tetrisGame = new TetrisGame(gameCanvas, gameContext);

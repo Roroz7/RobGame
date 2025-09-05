@@ -11,19 +11,32 @@
 <body>
     <header class="header">
         <nav class="navbar">
-            <div class="nav-brand">
-                <i class="fas fa-gamepad"></i>
-                <span>RobGame</span>
-            </div>
-            <div class="nav-menu">
-                <a href="#home" class="nav-link active">Accueil</a>
-                <a href="#games" class="nav-link">Jeux</a>
-                <a href="#about" class="nav-link">À propos</a>
-            </div>
-            <div class="nav-toggle">
-                <span></span>
-                <span></span>
-                <span></span>
+            <div class="container">
+                <div class="nav-brand">
+                    <h1>RobGame</h1>
+                    <span>by Robin Pit</span>
+                </div>
+                <div class="nav-menu" id="navMenu">
+                    <a href="#home" class="nav-link">Accueil</a>
+                    <a href="#games" class="nav-link">Jeux</a>
+                    <a href="#leaderboard" class="nav-link">Classement</a>
+                    <a href="#about" class="nav-link">À propos</a>
+                </div>
+                <div class="user-section">
+                    <div id="userLoggedOut" class="auth-buttons">
+                        <button class="btn-login" onclick="openAuthModal('login')">Connexion</button>
+                        <button class="btn-register" onclick="openAuthModal('register')">Inscription</button>
+                    </div>
+                    <div id="userLoggedIn" class="user-info" style="display: none;">
+                        <span class="username" id="currentUsername"></span>
+                        <button class="btn-logout" onclick="logout()">Déconnexion</button>
+                    </div>
+                </div>
+                <div class="nav-toggle" id="navToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
         </nav>
     </header>
@@ -161,6 +174,41 @@
             </div>
         </section>
 
+        <!-- Section Classement -->
+        <section id="leaderboard" class="leaderboard">
+            <div class="container">
+                <h2>🏆 Classement des Scores</h2>
+                <div class="leaderboard-tabs">
+                    <button class="tab-btn active" onclick="showLeaderboard('snake')">Snake</button>
+                    <button class="tab-btn" onclick="showLeaderboard('tetris')">Tetris</button>
+                    <button class="tab-btn" onclick="showLeaderboard('flappy')">Flappy Bird</button>
+                    <button class="tab-btn" onclick="showLeaderboard('2048')">2048</button>
+                    <button class="tab-btn" onclick="showLeaderboard('memory')">Memory</button>
+                    <button class="tab-btn" onclick="showLeaderboard('pong')">Pong</button>
+                </div>
+                <div class="leaderboard-content">
+                    <div id="leaderboard-snake" class="leaderboard-table active">
+                        <div class="no-scores">Aucun score enregistré pour ce jeu</div>
+                    </div>
+                    <div id="leaderboard-tetris" class="leaderboard-table">
+                        <div class="no-scores">Aucun score enregistré pour ce jeu</div>
+                    </div>
+                    <div id="leaderboard-flappy" class="leaderboard-table">
+                        <div class="no-scores">Aucun score enregistré pour ce jeu</div>
+                    </div>
+                    <div id="leaderboard-2048" class="leaderboard-table">
+                        <div class="no-scores">Aucun score enregistré pour ce jeu</div>
+                    </div>
+                    <div id="leaderboard-memory" class="leaderboard-table">
+                        <div class="no-scores">Aucun score enregistré pour ce jeu</div>
+                    </div>
+                    <div id="leaderboard-pong" class="leaderboard-table">
+                        <div class="no-scores">Aucun score enregistré pour ce jeu</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Section À propos -->
         <section id="about" class="about-section">
             <div class="container">
@@ -234,6 +282,33 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal d'authentification -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-content">
+            <h2 id="authTitle">Connexion</h2>
+            
+            <!-- Formulaire de connexion -->
+            <div id="loginForm" class="auth-form">
+                <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" required>
+                <input type="password" id="loginPassword" placeholder="Mot de passe" required>
+                <button onclick="login()" class="auth-submit">Se connecter</button>
+                <p class="auth-switch">Pas de compte ? <a href="#" onclick="switchAuthMode('register')">S'inscrire</a></p>
+            </div>
+            
+            <!-- Formulaire d'inscription -->
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <input type="text" id="registerUsername" placeholder="Nom d'utilisateur" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Mot de passe" required>
+                <input type="password" id="registerConfirmPassword" placeholder="Confirmer le mot de passe" required>
+                <button onclick="register()" class="auth-submit">S'inscrire</button>
+                <p class="auth-switch">Déjà un compte ? <a href="#" onclick="switchAuthMode('login')">Se connecter</a></p>
+            </div>
+            
+            <button class="close-auth" onclick="closeAuthModal()">&times;</button>
         </div>
     </div>
 
