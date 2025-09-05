@@ -871,6 +871,11 @@ html {
     gap: 1rem;
 }
 
+#adminAccess {
+    display: flex;
+    align-items: center;
+}
+
 .username {
     color: var(--primary-color);
     font-weight: 600;
@@ -890,6 +895,22 @@ html {
 .btn-logout:hover {
     border-color: #ef4444;
     color: #ef4444;
+}
+
+.btn-admin {
+    padding: 0.4rem 0.8rem;
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-admin:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
 }
 
 /* Modal d'authentification */
@@ -1083,4 +1104,406 @@ html {
     color: var(--text-secondary);
     padding: 2rem;
     font-style: italic;
+}
+
+/* Panel Admin Avancé */
+.admin-content-advanced {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card);
+    border-radius: 15px;
+    border: 1px solid var(--primary-color);
+    width: 90%;
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-header h2 {
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.admin-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+}
+
+.admin-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-tab {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.admin-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.admin-tab:hover:not(.active) {
+    background: var(--bg-primary);
+}
+
+.admin-tab-content {
+    display: none;
+    padding: 2rem;
+}
+
+.admin-tab-content.active {
+    display: block;
+}
+
+.maintenance-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.maintenance-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.global-maintenance {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.maintenance-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.maintenance-warning {
+    color: #f59e0b;
+    font-size: 0.9rem;
+    margin: 0;
+    font-style: italic;
+}
+
+.users-stats, .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.stat-card h4 {
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.stat-card span {
+    color: var(--primary-color);
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.users-list {
+    background: var(--bg-primary);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.setting-item {
+    background: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.setting-item label {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.setting-item textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.danger-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.danger-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.admin-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+/* Modal de Maintenance Globale */
+.maintenance-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.maintenance-content {
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.maintenance-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 2.5rem;
+}
+
+.maintenance-content p {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.maintenance-animation {
+    display: flex;
+    justify-content: center;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.admin-maintenance-access {
+    margin-top: 2rem;
+}
+
+.admin-access-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.admin-access-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.auth-cancel {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.auth-cancel:hover {
+    background: var(--bg-primary);
+    border-color: var(--text-secondary);
+}
+
+/* Styles pour la gestion des utilisateurs */
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.user-info-basic {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.user-email {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.user-status {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.user-status.online {
+    color: #10b981;
+}
+
+.user-status.offline {
+    color: #ef4444;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.reset-btn, .details-btn, .delete-btn, .export-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.reset-btn {
+    background: #f59e0b;
+    color: white;
+}
+
+.reset-btn:hover {
+    background: #d97706;
+}
+
+.details-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.details-btn:hover {
+    background: var(--primary-dark);
+}
+
+.delete-btn {
+    background: #ef4444;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+}
+
+.export-btn {
+    background: #10b981;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.export-btn:hover {
+    background: #059669;
+}
+
+.refresh-btn {
+    background: #6366f1;
+    color: white;
+    padding: 0.6rem 1.2rem;
+}
+
+.refresh-btn:hover {
+    background: #4f46e5;
+}
+
+.users-actions {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    border-top: 1px solid var(--border-color);
 }

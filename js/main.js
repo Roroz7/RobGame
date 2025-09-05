@@ -3,6 +3,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeNavigation();
     initializeGameModal();
     initializeAnimations();
+    
+    // Vérifier si un utilisateur est connecté au chargement
+    const savedUser = localStorage.getItem('robgame_current_user');
+    if (savedUser) {
+        currentUser = savedUser;
+        updateUserInterface();
+    }
+    
+    // Vérifier la maintenance globale du site (sauf pour ADMIN)
+    if (siteMaintenance && currentUser !== 'ADMIN') {
+        showGlobalMaintenance();
+        return;
+    }
+    
+    loadLeaderboards();
 });
 
 // Navigation
@@ -284,10 +299,10 @@ function showMaintenance(gameName) {
     gameContext.fillText('Nous travaillons sur des améliorations', gameCanvas.width / 2, gameCanvas.height / 2 + 45);
 }
 
-// Système d'authentification utilisateur
+// Variables globales pour l'authentification et admin
 let currentUser = null;
-let users = JSON.parse(localStorage.getItem('robgame_users')) || {};
-let scores = JSON.parse(localStorage.getItem('robgame_scores')) || {
+let users = JSON.parse(localStorage.getItem('robgame_users')) || [];
+let gameScores = JSON.parse(localStorage.getItem('robgame_scores')) || {
     snake: [],
     tetris: [],
     flappy: [],
@@ -295,16 +310,20 @@ let scores = JSON.parse(localStorage.getItem('robgame_scores')) || {
     memory: [],
     pong: []
 };
+let isAdminLoggedIn = false;
+let siteMaintenance = JSON.parse(localStorage.getItem('robgame_site_maintenance')) || false;
+let customMaintenanceMessage = localStorage.getItem('robgame_maintenance_message') || 'Le site est actuellement en maintenance. Veuillez revenir plus tard.';
 
-// Vérifier si un utilisateur est connecté au chargement
-document.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('robgame_current_user');
-    if (savedUser) {
-        currentUser = savedUser;
-        updateUserInterface();
-    }
-    loadLeaderboards();
-});
+// Variables de maintenance des jeux
+let gameMaintenanceStatus = JSON.parse(localStorage.getItem('robgame_maintenance')) || {
+    snake: false,
+    tetris: false,
+    flappy: false,
+    '2048': true,
+    memory: false,
+    pong: false
+};
+
 
 function openAuthModal(mode) {
     document.getElementById('authModal').style.display = 'block';
@@ -403,17 +422,26 @@ function logout() {
 }
 
 function updateUserInterface() {
-    const loggedOut = document.getElementById('userLoggedOut');
-    const loggedIn = document.getElementById('userLoggedIn');
-    const usernameSpan = document.getElementById('currentUsername');
+    const userLoggedOut = document.getElementById('userLoggedOut');
+    const userLoggedIn = document.getElementById('userLoggedIn');
+    const currentUsername = document.getElementById('currentUsername');
+    const adminAccess = document.getElementById('adminAccess');
     
     if (currentUser) {
-        loggedOut.style.display = 'none';
-        loggedIn.style.display = 'flex';
-        usernameSpan.textContent = currentUser;
+        userLoggedOut.style.display = 'none';
+        userLoggedIn.style.display = 'flex';
+        currentUsername.textContent = currentUser;
+        
+        // Afficher le bouton admin si l'utilisateur est ADMIN
+        if (currentUser === 'ADMIN') {
+            adminAccess.style.display = 'flex';
+        } else {
+            adminAccess.style.display = 'none';
+        }
     } else {
-        loggedOut.style.display = 'flex';
-        loggedIn.style.display = 'none';
+        userLoggedOut.style.display = 'flex';
+        userLoggedIn.style.display = 'none';
+        adminAccess.style.display = 'none';
     }
 }
 
@@ -428,16 +456,356 @@ function saveScore(game, score) {
         date: new Date().toISOString()
     };
     
-    if (!scores[game]) {
-        scores[game] = [];
+    if (!gameScores[game]) {
+        gameScores[game] = [];
     }
     
-    scores[game].push(scoreEntry);
-    scores[game].sort((a, b) => b.score - a.score); // Trier par score décroissant
-    scores[game] = scores[game].slice(0, 10); // Garder seulement le top 10
+    gameScores[game].push(scoreEntry);
+    gameScores[game].sort((a, b) => b.score - a.score); // Trier par score décroissant
+    gameScores[game] = gameScores[game].slice(0, 10); // Garder seulement le top 10
     
-    localStorage.setItem('robgame_scores', JSON.stringify(scores));
+    localStorage.setItem('robgame_scores', JSON.stringify(gameScores));
     loadLeaderboards();
+}
+
+// Panel Admin Avancé
+function openAdminPanel() {
+    if (currentUser !== 'ADMIN') {
+        alert('Accès refusé. Seul le compte ADMIN peut accéder à ce panel.');
+        return;
+    }
+    
+    isAdminLoggedIn = true;
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('adminUserInfo').textContent = `Connecté en tant que: ${currentUser}`;
+    updateAdminInterface();
+    loadAdminStats();
+}
+
+function closeAdminPanel() {
+    document.getElementById('adminPanel').style.display = 'none';
+    isAdminLoggedIn = false;
+}
+
+function switchAdminTab(tabName) {
+    // Masquer tous les onglets
+    document.querySelectorAll('.admin-tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Afficher l'onglet sélectionné
+    document.getElementById(`admin-${tabName}`).classList.add('active');
+    document.querySelector(`[onclick="switchAdminTab('${tabName}')"]`).classList.add('active');
+    
+    // Charger les données spécifiques à l'onglet
+    if (tabName === 'users') {
+        loadUsersList();
+    } else if (tabName === 'stats') {
+        loadAdminStats();
+    }
+}
+
+function toggleSiteMaintenance() {
+    siteMaintenance = !siteMaintenance;
+    localStorage.setItem('robgame_site_maintenance', JSON.stringify(siteMaintenance));
+    
+    const button = document.getElementById('site-toggle');
+    if (siteMaintenance) {
+        button.textContent = 'Maintenance';
+        button.className = 'status-btn maintenance';
+        showGlobalMaintenance();
+    } else {
+        button.textContent = 'Actif';
+        button.className = 'status-btn active';
+        hideGlobalMaintenance();
+    }
+}
+
+function toggleGameMaintenance(game) {
+    gameMaintenanceStatus[game] = !gameMaintenanceStatus[game];
+    localStorage.setItem('robgame_maintenance', JSON.stringify(gameMaintenanceStatus));
+    updateGameMaintenanceButtons();
+}
+
+function updateGameMaintenanceButtons() {
+    Object.keys(gameMaintenanceStatus).forEach(game => {
+        const button = document.getElementById(`${game}-toggle`);
+        if (gameMaintenanceStatus[game]) {
+            button.textContent = 'Maintenance';
+            button.className = 'status-btn maintenance';
+        } else {
+            button.textContent = 'Actif';
+            button.className = 'status-btn active';
+        }
+    });
+}
+
+function updateAdminInterface() {
+    // Mettre à jour les boutons de maintenance
+    const siteButton = document.getElementById('site-toggle');
+    if (siteMaintenance) {
+        siteButton.textContent = 'Maintenance';
+        siteButton.className = 'status-btn maintenance';
+    } else {
+        siteButton.textContent = 'Actif';
+        siteButton.className = 'status-btn active';
+    }
+    
+    updateGameMaintenanceButtons();
+    
+    // Charger le message de maintenance personnalisé
+    document.getElementById('maintenanceMessage').value = customMaintenanceMessage;
+}
+
+function showGlobalMaintenance() {
+    const modal = document.getElementById('maintenanceModal');
+    const text = document.getElementById('maintenanceText');
+    text.textContent = customMaintenanceMessage;
+    modal.style.display = 'flex';
+}
+
+function hideGlobalMaintenance() {
+    document.getElementById('maintenanceModal').style.display = 'none';
+}
+
+function loadUsersList() {
+    const usersList = document.getElementById('usersList');
+    const totalUsersSpan = document.getElementById('totalUsers');
+    const activeUsersSpan = document.getElementById('activeUsers');
+    
+    totalUsersSpan.textContent = users.length;
+    activeUsersSpan.textContent = currentUser ? 1 : 0;
+    
+    usersList.innerHTML = '';
+    users.forEach((user, index) => {
+        const userItem = document.createElement('div');
+        userItem.className = 'user-item';
+        userItem.innerHTML = `
+            <div class="user-info-basic">
+                <span class="user-name">${user.username}</span>
+                <span class="user-email">${user.email}</span>
+                <span class="user-status ${user.username === currentUser ? 'online' : 'offline'}">
+                    ${user.username === currentUser ? '🟢 En ligne' : '🔴 Hors ligne'}
+                </span>
+            </div>
+            <div class="user-actions">
+                <button onclick="resetUserPassword('${user.username}')" class="reset-btn">🔄 Reset MDP</button>
+                <button onclick="showUserFullDetails(${index})" class="details-btn">👁️ Détails</button>
+                <button onclick="deleteUser('${user.username}')" class="delete-btn">🗑️ Supprimer</button>
+            </div>
+        `;
+        usersList.appendChild(userItem);
+    });
+}
+
+function loadAdminStats() {
+    let totalGames = 0;
+    let totalScore = 0;
+    let gameCount = {};
+    
+    Object.keys(gameScores).forEach(game => {
+        const scores = gameScores[game];
+        totalGames += scores.length;
+        gameCount[game] = scores.length;
+        scores.forEach(score => {
+            totalScore += score.score;
+        });
+    });
+    
+    const avgScore = totalGames > 0 ? Math.round(totalScore / totalGames) : 0;
+    const popularGame = Object.keys(gameCount).reduce((a, b) => gameCount[a] > gameCount[b] ? a : b, 'snake');
+    
+    document.getElementById('totalGames').textContent = totalGames;
+    document.getElementById('avgScore').textContent = avgScore;
+    document.getElementById('popularGame').textContent = popularGame.charAt(0).toUpperCase() + popularGame.slice(1);
+    document.getElementById('totalTime').textContent = Math.round(totalGames * 2.5) + 'min';
+}
+
+function updateMaintenanceMessage() {
+    const newMessage = document.getElementById('maintenanceMessage').value;
+    if (newMessage.trim()) {
+        customMaintenanceMessage = newMessage.trim();
+        localStorage.setItem('robgame_maintenance_message', customMaintenanceMessage);
+        alert('Message de maintenance mis à jour!');
+        
+        // Mettre à jour le modal si la maintenance est active
+        if (siteMaintenance) {
+            document.getElementById('maintenanceText').textContent = customMaintenanceMessage;
+        }
+    }
+}
+
+function resetAllData() {
+    if (confirm('⚠️ ATTENTION: Cette action supprimera TOUTES les données (utilisateurs, scores, paramètres). Êtes-vous sûr?')) {
+        if (confirm('Cette action est IRRÉVERSIBLE. Confirmez-vous la suppression de toutes les données?')) {
+            localStorage.removeItem('robgame_users');
+            localStorage.removeItem('robgame_scores');
+            localStorage.removeItem('robgame_current_user');
+            localStorage.removeItem('robgame_maintenance');
+            localStorage.removeItem('robgame_site_maintenance');
+            localStorage.removeItem('robgame_maintenance_message');
+            
+            alert('Toutes les données ont été supprimées. La page va se recharger.');
+            location.reload();
+        }
+    }
+}
+
+function adminLogout() {
+    closeAdminPanel();
+    alert('Déconnexion admin effectuée.');
+}
+
+// Fonctions pour l'accès admin pendant maintenance
+function showAdminLogin() {
+    document.getElementById('adminMaintenanceModal').style.display = 'block';
+}
+
+function closeAdminMaintenanceModal() {
+    document.getElementById('adminMaintenanceModal').style.display = 'none';
+    document.getElementById('adminMaintenanceUsername').value = '';
+    document.getElementById('adminMaintenancePassword').value = '';
+}
+
+function adminMaintenanceLogin() {
+    const username = document.getElementById('adminMaintenanceUsername').value;
+    const password = document.getElementById('adminMaintenancePassword').value;
+    
+    // Vérifier si c'est un utilisateur valide avec le bon mot de passe
+    const user = users.find(u => u.username === username && u.password === password);
+    
+    if (user && username === 'ADMIN') {
+        currentUser = username;
+        localStorage.setItem('robgame_current_user', currentUser);
+        closeAdminMaintenanceModal();
+        hideGlobalMaintenance();
+        updateUserInterface();
+        alert('Accès administrateur accordé!');
+        location.reload(); // Recharger pour appliquer les changements
+    } else {
+        alert('Accès refusé. Seul le compte ADMIN peut accéder au site pendant la maintenance.');
+    }
+}
+
+// Fonctions de gestion des utilisateurs
+function showUserFullDetails(userIndex) {
+    const user = users[userIndex];
+    const details = `
+📋 DÉTAILS COMPLETS DE L'UTILISATEUR
+
+👤 Nom d'utilisateur: ${user.username}
+📧 Email: ${user.email}
+🔐 Mot de passe: ${user.password}
+📅 Date d'inscription: ${user.registrationDate || 'Non disponible'}
+🎮 Statut: ${user.username === currentUser ? 'En ligne' : 'Hors ligne'}
+    `;
+    alert(details);
+}
+
+function resetUserPassword(username) {
+    if (confirm(`Voulez-vous réinitialiser le mot de passe de ${username}?`)) {
+        const newPassword = prompt('Nouveau mot de passe:', 'password123');
+        if (newPassword && newPassword.trim()) {
+            const userIndex = users.findIndex(u => u.username === username);
+            if (userIndex !== -1) {
+                users[userIndex].password = newPassword.trim();
+                localStorage.setItem('robgame_users', JSON.stringify(users));
+                alert(`Mot de passe de ${username} réinitialisé avec succès!\nNouveau mot de passe: ${newPassword.trim()}`);
+                loadUsersList();
+            }
+        }
+    }
+}
+
+function deleteUser(username) {
+    if (username === 'ADMIN') {
+        alert('Impossible de supprimer le compte ADMIN!');
+        return;
+    }
+    
+    if (confirm(`⚠️ ATTENTION: Supprimer définitivement l'utilisateur ${username}?\nCette action est irréversible!`)) {
+        users = users.filter(u => u.username !== username);
+        localStorage.setItem('robgame_users', JSON.stringify(users));
+        
+        // Supprimer aussi les scores de cet utilisateur
+        Object.keys(gameScores).forEach(game => {
+            gameScores[game] = gameScores[game].filter(score => score.username !== username);
+        });
+        localStorage.setItem('robgame_scores', JSON.stringify(gameScores));
+        
+        alert(`Utilisateur ${username} supprimé avec succès!`);
+        loadUsersList();
+        loadLeaderboards();
+    }
+}
+
+function exportUsersData() {
+    const data = {
+        users: users,
+        exportDate: new Date().toISOString(),
+        totalUsers: users.length
+    };
+    
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `robgame_users_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    alert('Données des utilisateurs exportées avec succès!');
+}
+
+function showUserDetails() {
+    let details = '📊 DONNÉES COMPLÈTES DES UTILISATEURS\n\n';
+    
+    users.forEach((user, index) => {
+        details += `${index + 1}. 👤 ${user.username}\n`;
+        details += `   📧 Email: ${user.email}\n`;
+        details += `   🔐 Mot de passe: ${user.password}\n`;
+        details += `   📅 Inscription: ${user.registrationDate || 'N/A'}\n`;
+        details += `   🎮 Statut: ${user.username === currentUser ? 'En ligne' : 'Hors ligne'}\n\n`;
+    });
+    
+    if (users.length === 0) {
+        details += 'Aucun utilisateur inscrit.';
+    }
+    
+    alert(details);
+}
+
+// Fonctions pour les classements
+function loadLeaderboards() {
+    const games = ['snake', 'tetris', 'flappy', '2048', 'memory', 'pong'];
+    
+    games.forEach(game => {
+        const leaderboardDiv = document.getElementById(`leaderboard-${game}`);
+        if (leaderboardDiv) {
+            const scores = gameScores[game] || [];
+            
+            if (scores.length === 0) {
+                leaderboardDiv.innerHTML = '<div class="no-scores">Aucun score enregistré pour ce jeu</div>';
+            } else {
+                let html = '<div class="leaderboard-header"><span>Rang</span><span>Joueur</span><span>Score</span></div>';
+                scores.forEach((score, index) => {
+                    html += `
+                        <div class="leaderboard-row">
+                            <span class="rank">#${index + 1}</span>
+                            <span class="player">${score.username}</span>
+                            <span class="score">${score.score}</span>
+                        </div>
+                    `;
+                });
+                leaderboardDiv.innerHTML = html;
+            }
+        }
+    });
 }
 
 function showLeaderboard(game) {
@@ -452,89 +820,13 @@ function showLeaderboard(game) {
     });
     
     // Afficher le tableau sélectionné
-    document.getElementById(`leaderboard-${game}`).classList.add('active');
-    
-    // Activer le bouton correspondant
-    event.target.classList.add('active');
-}
-
-function loadLeaderboards() {
-    Object.keys(scores).forEach(game => {
-        const tableElement = document.getElementById(`leaderboard-${game}`);
-        
-        if (scores[game].length === 0) {
-            tableElement.innerHTML = '<div class="no-scores">Aucun score enregistré pour ce jeu</div>';
-        } else {
-            let html = '';
-            scores[game].forEach((entry, index) => {
-                html += `
-                    <div class="score-entry">
-                        <div class="score-rank">#${index + 1}</div>
-                        <div class="score-username">${entry.username}</div>
-                        <div class="score-value">${entry.score}</div>
-                    </div>
-                `;
-            });
-            tableElement.innerHTML = html;
-        }
-    });
-}
-
-// Panel Admin
-const adminCredentials = {
-    id: 'admin',
-    password: 'robgame2024'
-};
-
-let gameMaintenanceStatus = {
-    'snake': false,
-    'tetris': false,
-    'flappy': false,
-    '2048': true,
-    'memory': false,
-    'pong': false
-};
-
-function openAdmin() {
-    document.getElementById('adminPanel').style.display = 'block';
-}
-
-function closeAdmin() {
-    document.getElementById('adminPanel').style.display = 'none';
-    document.getElementById('adminLogin').style.display = 'block';
-    document.getElementById('adminDashboard').style.display = 'none';
-    document.getElementById('adminId').value = '';
-    document.getElementById('adminPassword').value = '';
-}
-
-function adminLogin() {
-    const id = document.getElementById('adminId').value;
-    const password = document.getElementById('adminPassword').value;
-    
-    if (id === adminCredentials.id && password === adminCredentials.password) {
-        document.getElementById('adminLogin').style.display = 'none';
-        document.getElementById('adminDashboard').style.display = 'block';
-        updateAdminDashboard();
-    } else {
-        alert('Identifiants incorrects');
+    const selectedTable = document.getElementById(`leaderboard-${game}`);
+    if (selectedTable) {
+        selectedTable.classList.add('active');
     }
-}
-
-function adminLogout() {
-    closeAdmin();
-}
-
-function updateAdminDashboard() {
-    Object.keys(gameMaintenanceStatus).forEach(game => {
-        const button = document.getElementById(`${game}-toggle`);
-        if (gameMaintenanceStatus[game]) {
-            button.textContent = 'Maintenance';
-            button.className = 'status-btn maintenance';
-        } else {
-            button.textContent = 'Actif';
-            button.className = 'status-btn active';
-        }
-    });
+    
+    // Activer le bouton sélectionné
+    event.target.classList.add('active');
 }
 
 function toggleMaintenance(gameName) {
@@ -568,8 +860,6 @@ function initializeAnimations() {
     });
 }
 
-// Initialiser les animations au chargement
-document.addEventListener('DOMContentLoaded', initializeAnimations);
 
 // Utilitaires
 function isMobile() {

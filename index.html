@@ -29,6 +29,9 @@
                     </div>
                     <div id="userLoggedIn" class="user-info" style="display: none;">
                         <span class="username" id="currentUsername"></span>
+                        <div id="adminAccess" style="display: none;">
+                            <button class="btn-admin" onclick="openAdminPanel()">🔧 Admin</button>
+                        </div>
                         <button class="btn-logout" onclick="logout()">Déconnexion</button>
                     </div>
                 </div>
@@ -312,55 +315,166 @@
         </div>
     </div>
 
-    <!-- Panel Admin -->
+    <!-- Panel Admin Avancé -->
     <div id="adminPanel" class="admin-panel">
-        <div class="admin-content">
-            <h2>🔧 Panel Admin</h2>
-            <div id="adminLogin" class="admin-login">
-                <div class="login-form">
-                    <input type="text" id="adminId" placeholder="ID Admin" />
-                    <input type="password" id="adminPassword" placeholder="Mot de passe" />
-                    <button onclick="adminLogin()">Se connecter</button>
+        <div class="admin-content-advanced">
+            <div class="admin-header">
+                <h2>🔧 Panel Administrateur</h2>
+                <div class="admin-info">
+                    <span id="adminUserInfo"></span>
+                    <button class="close-admin" onclick="closeAdminPanel()">&times;</button>
                 </div>
             </div>
-            <div id="adminDashboard" class="admin-dashboard" style="display: none;">
-                <h3>Gestion des Maintenances</h3>
-                <div class="games-status">
-                    <div class="game-control">
-                        <span>Snake Classic</span>
-                        <button id="snake-toggle" class="status-btn active" onclick="toggleMaintenance('snake')">Actif</button>
-                    </div>
-                    <div class="game-control">
-                        <span>Tetris Pro</span>
-                        <button id="tetris-toggle" class="status-btn active" onclick="toggleMaintenance('tetris')">Actif</button>
-                    </div>
-                    <div class="game-control">
-                        <span>Flappy Bird</span>
-                        <button id="flappy-toggle" class="status-btn active" onclick="toggleMaintenance('flappy')">Actif</button>
-                    </div>
-                    <div class="game-control">
-                        <span>2048 Challenge</span>
-                        <button id="2048-toggle" class="status-btn maintenance" onclick="toggleMaintenance('2048')">Maintenance</button>
-                    </div>
-                    <div class="game-control">
-                        <span>Memory Master</span>
-                        <button id="memory-toggle" class="status-btn active" onclick="toggleMaintenance('memory')">Actif</button>
-                    </div>
-                    <div class="game-control">
-                        <span>Pong Retro</span>
-                        <button id="pong-toggle" class="status-btn active" onclick="toggleMaintenance('pong')">Actif</button>
+            
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchAdminTab('maintenance')">Maintenance</button>
+                <button class="admin-tab" onclick="switchAdminTab('users')">Utilisateurs</button>
+                <button class="admin-tab" onclick="switchAdminTab('stats')">Statistiques</button>
+                <button class="admin-tab" onclick="switchAdminTab('settings')">Paramètres</button>
+            </div>
+            
+            <!-- Onglet Maintenance -->
+            <div id="admin-maintenance" class="admin-tab-content active">
+                <div class="maintenance-section">
+                    <h3>🚨 Maintenance Globale</h3>
+                    <div class="global-maintenance">
+                        <div class="maintenance-control">
+                            <span>Site Web Complet</span>
+                            <button id="site-toggle" class="status-btn active" onclick="toggleSiteMaintenance()">Actif</button>
+                        </div>
+                        <p class="maintenance-warning">⚠️ Activer la maintenance globale rendra le site inaccessible pour tous les utilisateurs</p>
                     </div>
                 </div>
-                <button class="logout-btn" onclick="adminLogout()">Déconnexion</button>
+                
+                <div class="maintenance-section">
+                    <h3>🎮 Maintenance par Jeu</h3>
+                    <div class="games-status">
+                        <div class="game-control">
+                            <span>Snake Classic</span>
+                            <button id="snake-toggle" class="status-btn active" onclick="toggleGameMaintenance('snake')">Actif</button>
+                        </div>
+                        <div class="game-control">
+                            <span>Tetris Pro</span>
+                            <button id="tetris-toggle" class="status-btn active" onclick="toggleGameMaintenance('tetris')">Actif</button>
+                        </div>
+                        <div class="game-control">
+                            <span>Flappy Bird</span>
+                            <button id="flappy-toggle" class="status-btn active" onclick="toggleGameMaintenance('flappy')">Actif</button>
+                        </div>
+                        <div class="game-control">
+                            <span>2048 Challenge</span>
+                            <button id="2048-toggle" class="status-btn maintenance" onclick="toggleGameMaintenance('2048')">Maintenance</button>
+                        </div>
+                        <div class="game-control">
+                            <span>Memory Master</span>
+                            <button id="memory-toggle" class="status-btn active" onclick="toggleGameMaintenance('memory')">Actif</button>
+                        </div>
+                        <div class="game-control">
+                            <span>Pong Retro</span>
+                            <button id="pong-toggle" class="status-btn active" onclick="toggleGameMaintenance('pong')">Actif</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button class="close-admin" onclick="closeAdmin()">&times;</button>
+            
+            <!-- Onglet Utilisateurs -->
+            <div id="admin-users" class="admin-tab-content">
+                <h3>👥 Gestion des Utilisateurs</h3>
+                <div class="users-stats">
+                    <div class="stat-card">
+                        <h4>Utilisateurs Inscrits</h4>
+                        <span id="totalUsers">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Utilisateurs Actifs</h4>
+                        <span id="activeUsers">0</span>
+                    </div>
+                </div>
+                <div class="users-list" id="usersList">
+                    <!-- Liste des utilisateurs générée dynamiquement -->
+                </div>
+                <div class="users-actions">
+                    <button onclick="exportUsersData()" class="export-btn">📥 Exporter les données</button>
+                    <button onclick="showUserDetails()" class="details-btn">👁️ Voir détails complets</button>
+                    <button onclick="loadUsersList()" class="refresh-btn">🔄 Actualiser</button>
+                </div>
+            </div>
+            
+            <!-- Onglet Statistiques -->
+            <div id="admin-stats" class="admin-tab-content">
+                <h3>📊 Statistiques du Site</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Parties Jouées</h4>
+                        <span id="totalGames">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Score Moyen</h4>
+                        <span id="avgScore">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Jeu le Plus Populaire</h4>
+                        <span id="popularGame">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Temps de Jeu Total</h4>
+                        <span id="totalTime">0h</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Onglet Paramètres -->
+            <div id="admin-settings" class="admin-tab-content">
+                <h3>⚙️ Paramètres Système</h3>
+                <div class="settings-section">
+                    <div class="setting-item">
+                        <label>Message de Maintenance Personnalisé</label>
+                        <textarea id="maintenanceMessage" placeholder="Message affiché pendant la maintenance..."></textarea>
+                        <button onclick="updateMaintenanceMessage()">Mettre à jour</button>
+                    </div>
+                    <div class="setting-item">
+                        <label>Réinitialiser toutes les données</label>
+                        <button class="danger-btn" onclick="resetAllData()">⚠️ Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="admin-footer">
+                <button class="logout-btn" onclick="adminLogout()">Déconnexion Admin</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Maintenance Globale -->
+    <div id="maintenanceModal" class="maintenance-modal" style="display: none;">
+        <div class="maintenance-content">
+            <h2>🚧 Site en Maintenance</h2>
+            <p id="maintenanceText">Le site est actuellement en maintenance. Veuillez revenir plus tard.</p>
+            <div class="maintenance-animation">
+                <div class="spinner"></div>
+            </div>
+            <div class="admin-maintenance-access">
+                <button onclick="showAdminLogin()" class="admin-access-btn">Accès Administrateur</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de connexion admin pendant maintenance -->
+    <div id="adminMaintenanceModal" class="auth-modal" style="display: none;">
+        <div class="auth-content">
+            <h2>🔐 Accès Administrateur</h2>
+            <div class="auth-form">
+                <input type="text" id="adminMaintenanceUsername" placeholder="Nom d'utilisateur" required>
+                <input type="password" id="adminMaintenancePassword" placeholder="Mot de passe" required>
+                <button onclick="adminMaintenanceLogin()" class="auth-submit">Se connecter</button>
+                <button onclick="closeAdminMaintenanceModal()" class="auth-cancel">Annuler</button>
+            </div>
         </div>
     </div>
 
     <footer class="footer">
         <div class="container">
             <p>&copy; 2024 RobGame - by Robin Pit. Tous droits réservés.</p>
-            <button id="adminAccess" onclick="openAdmin()">Admin</button>
             <div class="social-links">
                 <a href="#"><i class="fab fa-github"></i></a>
                 <a href="#"><i class="fab fa-twitter"></i></a>
