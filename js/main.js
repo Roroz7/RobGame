@@ -12,10 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Vérifier la maintenance globale du site (sauf pour ADMIN)
-    if (siteMaintenance && currentUser !== 'ADMIN') {
-        showGlobalMaintenance();
-        return;
-    }
+    checkGlobalMaintenance();
     
     loadLeaderboards();
 });
@@ -516,11 +513,20 @@ function toggleSiteMaintenance() {
     if (siteMaintenance) {
         button.textContent = 'Maintenance';
         button.className = 'status-btn maintenance';
-        showGlobalMaintenance();
+        
+        // Forcer la maintenance pour tous les utilisateurs non-admin
+        if (currentUser !== 'ADMIN') {
+            showGlobalMaintenance();
+        }
+        
+        // Avertir l'admin que la maintenance est activée
+        alert('🚨 Maintenance globale activée!\nTous les utilisateurs (sauf ADMIN) verront l\'écran de maintenance.');
     } else {
         button.textContent = 'Actif';
         button.className = 'status-btn active';
         hideGlobalMaintenance();
+        
+        alert('✅ Maintenance globale désactivée!\nLe site est maintenant accessible à tous.');
     }
 }
 
@@ -560,15 +566,36 @@ function updateAdminInterface() {
     document.getElementById('maintenanceMessage').value = customMaintenanceMessage;
 }
 
+function checkGlobalMaintenance() {
+    // Recharger le statut de maintenance depuis localStorage
+    siteMaintenance = JSON.parse(localStorage.getItem('robgame_site_maintenance')) || false;
+    
+    if (siteMaintenance && currentUser !== 'ADMIN') {
+        showGlobalMaintenance();
+        return true;
+    }
+    return false;
+}
+
 function showGlobalMaintenance() {
     const modal = document.getElementById('maintenanceModal');
     const text = document.getElementById('maintenanceText');
     text.textContent = customMaintenanceMessage;
     modal.style.display = 'flex';
+    
+    // Masquer tout le contenu du site
+    document.querySelector('main').style.display = 'none';
+    document.querySelector('nav').style.display = 'none';
+    document.querySelector('footer').style.display = 'none';
 }
 
 function hideGlobalMaintenance() {
     document.getElementById('maintenanceModal').style.display = 'none';
+    
+    // Réafficher le contenu du site
+    document.querySelector('main').style.display = 'block';
+    document.querySelector('nav').style.display = 'block';
+    document.querySelector('footer').style.display = 'block';
 }
 
 function loadUsersList() {
