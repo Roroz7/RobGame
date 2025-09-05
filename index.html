@@ -237,9 +237,55 @@
         </div>
     </div>
 
+    <!-- Panel Admin -->
+    <div id="adminPanel" class="admin-panel">
+        <div class="admin-content">
+            <h2>🔧 Panel Admin</h2>
+            <div id="adminLogin" class="admin-login">
+                <div class="login-form">
+                    <input type="text" id="adminId" placeholder="ID Admin" />
+                    <input type="password" id="adminPassword" placeholder="Mot de passe" />
+                    <button onclick="adminLogin()">Se connecter</button>
+                </div>
+            </div>
+            <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+                <h3>Gestion des Maintenances</h3>
+                <div class="games-status">
+                    <div class="game-control">
+                        <span>Snake Classic</span>
+                        <button id="snake-toggle" class="status-btn active" onclick="toggleMaintenance('snake')">Actif</button>
+                    </div>
+                    <div class="game-control">
+                        <span>Tetris Pro</span>
+                        <button id="tetris-toggle" class="status-btn active" onclick="toggleMaintenance('tetris')">Actif</button>
+                    </div>
+                    <div class="game-control">
+                        <span>Flappy Bird</span>
+                        <button id="flappy-toggle" class="status-btn active" onclick="toggleMaintenance('flappy')">Actif</button>
+                    </div>
+                    <div class="game-control">
+                        <span>2048 Challenge</span>
+                        <button id="2048-toggle" class="status-btn maintenance" onclick="toggleMaintenance('2048')">Maintenance</button>
+                    </div>
+                    <div class="game-control">
+                        <span>Memory Master</span>
+                        <button id="memory-toggle" class="status-btn active" onclick="toggleMaintenance('memory')">Actif</button>
+                    </div>
+                    <div class="game-control">
+                        <span>Pong Retro</span>
+                        <button id="pong-toggle" class="status-btn active" onclick="toggleMaintenance('pong')">Actif</button>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="adminLogout()">Déconnexion</button>
+            </div>
+            <button class="close-admin" onclick="closeAdmin()">&times;</button>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container">
             <p>&copy; 2024 RobGame - by Robin Pit. Tous droits réservés.</p>
+            <button id="adminAccess" onclick="openAdmin()">Admin</button>
             <div class="social-links">
                 <a href="#"><i class="fab fa-github"></i></a>
                 <a href="#"><i class="fab fa-twitter"></i></a>

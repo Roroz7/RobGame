@@ -142,22 +142,46 @@ function startGame(gameName) {
         // Démarrer le jeu spécifique
         switch(gameName) {
             case 'snake':
-                gameInstance = initSnakeGame();
+                if (gameMaintenanceStatus['snake']) {
+                    showMaintenance('Snake Classic');
+                } else {
+                    gameInstance = initSnakeGame();
+                }
                 break;
             case 'tetris':
-                gameInstance = initTetrisGame();
+                if (gameMaintenanceStatus['tetris']) {
+                    showMaintenance('Tetris Pro');
+                } else {
+                    gameInstance = initTetrisGame();
+                }
                 break;
             case 'flappy':
-                gameInstance = initFlappyGame();
+                if (gameMaintenanceStatus['flappy']) {
+                    showMaintenance('Flappy Bird');
+                } else {
+                    gameInstance = initFlappyGame();
+                }
                 break;
             case '2048':
-                showMaintenance('2048 Challenge');
+                if (gameMaintenanceStatus['2048']) {
+                    showMaintenance('2048 Challenge');
+                } else {
+                    gameInstance = init2048Game();
+                }
                 break;
             case 'memory':
-                gameInstance = initMemoryGame();
+                if (gameMaintenanceStatus['memory']) {
+                    showMaintenance('Memory Master');
+                } else {
+                    gameInstance = initMemoryGame();
+                }
                 break;
             case 'pong':
-                gameInstance = initPongGame();
+                if (gameMaintenanceStatus['pong']) {
+                    showMaintenance('Pong Retro');
+                } else {
+                    gameInstance = initPongGame();
+                }
                 break;
             default:
                 showComingSoon();
@@ -260,6 +284,72 @@ function showMaintenance(gameName) {
     gameContext.fillText('Nous travaillons sur des améliorations', gameCanvas.width / 2, gameCanvas.height / 2 + 45);
 }
 
+// Panel Admin
+const adminCredentials = {
+    id: 'admin',
+    password: 'robgame2024'
+};
+
+let gameMaintenanceStatus = {
+    'snake': false,
+    'tetris': false,
+    'flappy': false,
+    '2048': true,
+    'memory': false,
+    'pong': false
+};
+
+function openAdmin() {
+    document.getElementById('adminPanel').style.display = 'block';
+}
+
+function closeAdmin() {
+    document.getElementById('adminPanel').style.display = 'none';
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminDashboard').style.display = 'none';
+    document.getElementById('adminId').value = '';
+    document.getElementById('adminPassword').value = '';
+}
+
+function adminLogin() {
+    const id = document.getElementById('adminId').value;
+    const password = document.getElementById('adminPassword').value;
+    
+    if (id === adminCredentials.id && password === adminCredentials.password) {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
+        updateAdminDashboard();
+    } else {
+        alert('Identifiants incorrects');
+    }
+}
+
+function adminLogout() {
+    closeAdmin();
+}
+
+function updateAdminDashboard() {
+    Object.keys(gameMaintenanceStatus).forEach(game => {
+        const button = document.getElementById(`${game}-toggle`);
+        if (gameMaintenanceStatus[game]) {
+            button.textContent = 'Maintenance';
+            button.className = 'status-btn maintenance';
+        } else {
+            button.textContent = 'Actif';
+            button.className = 'status-btn active';
+        }
+    });
+}
+
+function toggleMaintenance(gameName) {
+    gameMaintenanceStatus[gameName] = !gameMaintenanceStatus[gameName];
+    updateAdminDashboard();
+    
+    // Notification
+    const status = gameMaintenanceStatus[gameName] ? 'maintenance' : 'actif';
+    alert(`${gameName} est maintenant en ${status}`);
+}
+
 // Animations au scroll
 function initializeAnimations() {
     const observerOptions = {
@@ -270,20 +360,20 @@ function initializeAnimations() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+                entry.target.style.animationDelay = '0.1s';
+                entry.target.classList.add('animate');
             }
         });
     }, observerOptions);
     
-    // Observer les cartes de jeux
-    document.querySelectorAll('.game-card').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(card);
+    // Observer les éléments à animer
+    document.querySelectorAll('.game-card, .hero h1, .hero p').forEach(el => {
+        observer.observe(el);
     });
 }
+
+// Initialiser les animations au chargement
+document.addEventListener('DOMContentLoaded', initializeAnimations);
 
 // Utilitaires
 function isMobile() {
