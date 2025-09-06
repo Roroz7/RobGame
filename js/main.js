@@ -1,20 +1,35 @@
 // Navigation et interactions principales
 document.addEventListener('DOMContentLoaded', function() {
+    // Créer le compte ADMIN par défaut s'il n'existe pas
+    ensureAdminAccount();
+    
+    // Vérifier si un utilisateur est connecté AVANT la vérification de maintenance
+    const savedUser = localStorage.getItem('robgame_current_user');
+    if (savedUser) {
+        currentUser = savedUser;
+    }
+    
+    // Vérifier la maintenance globale APRÈS avoir défini currentUser
+    const maintenanceActive = checkGlobalMaintenance();
+    if (maintenanceActive) {
+        return; // Arrêter l'initialisation si maintenance active
+    }
+    
     initializeNavigation();
     initializeGameModal();
     initializeAnimations();
     
-    // Vérifier si un utilisateur est connecté au chargement
-    const savedUser = localStorage.getItem('robgame_current_user');
-    if (savedUser) {
-        currentUser = savedUser;
+    // Mettre à jour l'interface utilisateur
+    if (currentUser) {
         updateUserInterface();
     }
     
-    // Vérifier la maintenance globale du site (sauf pour ADMIN)
-    checkGlobalMaintenance();
-    
     loadLeaderboards();
+    
+    // Vérification continue de la maintenance toutes les 2 secondes
+    setInterval(() => {
+        checkGlobalMaintenance();
+    }, 2000);
 });
 
 // Navigation
@@ -311,6 +326,18 @@ let isAdminLoggedIn = false;
 let siteMaintenance = JSON.parse(localStorage.getItem('robgame_site_maintenance')) || false;
 let customMaintenanceMessage = localStorage.getItem('robgame_maintenance_message') || 'Le site est actuellement en maintenance. Veuillez revenir plus tard.';
 
+// Fonction pour s'assurer qu'un compte ADMIN existe
+function ensureAdminAccount() {
+    if (!users['ADMIN']) {
+        users['ADMIN'] = {
+            email: 'admin@robgame.com',
+            password: 'admin123',
+            createdAt: new Date().toISOString()
+        };
+        localStorage.setItem('robgame_users', JSON.stringify(users));
+    }
+}
+
 // Variables de maintenance des jeux
 let gameMaintenanceStatus = JSON.parse(localStorage.getItem('robgame_maintenance')) || {
     snake: false,
@@ -571,11 +598,14 @@ function checkGlobalMaintenance() {
     siteMaintenance = JSON.parse(localStorage.getItem('robgame_site_maintenance')) || false;
     
     if (siteMaintenance) {
-        // Vérifier si l'utilisateur actuel est ADMIN
-        const savedUser = localStorage.getItem('robgame_current_user');
+        // Vérifier si l'utilisateur actuel est ADMIN (utiliser currentUser ou localStorage)
+        const savedUser = currentUser || localStorage.getItem('robgame_current_user');
         if (savedUser !== 'ADMIN') {
             showGlobalMaintenance();
             return true;
+        } else {
+            // Si c'est ADMIN, s'assurer que la maintenance est cachée
+            hideGlobalMaintenance();
         }
     }
     return false;
@@ -588,18 +618,39 @@ function showGlobalMaintenance() {
     modal.style.display = 'flex';
     
     // Masquer tout le contenu du site
-    document.querySelector('main').style.display = 'none';
-    document.querySelector('nav').style.display = 'none';
-    document.querySelector('footer').style.display = 'none';
+    const main = document.querySelector('main');
+    const nav = document.querySelector('nav');
+    const footer = document.querySelector('footer');
+    
+    if (main) main.style.display = 'none';
+    if (nav) nav.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    
+    // Empêcher le scroll mais permettre les interactions sur le modal
+    document.body.style.overflow = 'hidden';
+    
+    // Permettre les interactions sur le modal de maintenance
+    if (modal) {
+        modal.style.pointerEvents = 'auto';
+        modal.style.zIndex = '10000';
+    }
 }
 
 function hideGlobalMaintenance() {
     document.getElementById('maintenanceModal').style.display = 'none';
     
     // Réafficher le contenu du site
-    document.querySelector('main').style.display = 'block';
-    document.querySelector('nav').style.display = 'block';
-    document.querySelector('footer').style.display = 'block';
+    const main = document.querySelector('main');
+    const nav = document.querySelector('nav');
+    const footer = document.querySelector('footer');
+    
+    if (main) main.style.display = 'block';
+    if (nav) nav.style.display = 'block';
+    if (footer) footer.style.display = 'block';
+    
+    // Restaurer les interactions
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
 }
 
 function loadUsersList() {
@@ -694,7 +745,12 @@ function adminLogout() {
 
 // Fonctions pour l'accès admin pendant maintenance
 function showAdminLogin() {
-    document.getElementById('adminMaintenanceModal').style.display = 'block';
+    const adminModal = document.getElementById('adminMaintenanceModal');
+    if (adminModal) {
+        adminModal.style.display = 'block';
+        adminModal.style.zIndex = '10001';
+        adminModal.style.pointerEvents = 'auto';
+    }
 }
 
 function closeAdminMaintenanceModal() {
