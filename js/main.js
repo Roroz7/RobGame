@@ -298,7 +298,7 @@ function showMaintenance(gameName) {
 
 // Variables globales pour l'authentification et admin
 let currentUser = null;
-let users = JSON.parse(localStorage.getItem('robgame_users')) || [];
+let users = JSON.parse(localStorage.getItem('robgame_users')) || {};
 let gameScores = JSON.parse(localStorage.getItem('robgame_scores')) || {
     snake: [],
     tetris: [],
@@ -514,13 +514,13 @@ function toggleSiteMaintenance() {
         button.textContent = 'Maintenance';
         button.className = 'status-btn maintenance';
         
-        // Forcer la maintenance pour tous les utilisateurs non-admin
-        if (currentUser !== 'ADMIN') {
-            showGlobalMaintenance();
-        }
-        
         // Avertir l'admin que la maintenance est activée
         alert('🚨 Maintenance globale activée!\nTous les utilisateurs (sauf ADMIN) verront l\'écran de maintenance.');
+        
+        // Forcer un rechargement pour appliquer la maintenance immédiatement
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     } else {
         button.textContent = 'Actif';
         button.className = 'status-btn active';
@@ -570,9 +570,13 @@ function checkGlobalMaintenance() {
     // Recharger le statut de maintenance depuis localStorage
     siteMaintenance = JSON.parse(localStorage.getItem('robgame_site_maintenance')) || false;
     
-    if (siteMaintenance && currentUser !== 'ADMIN') {
-        showGlobalMaintenance();
-        return true;
+    if (siteMaintenance) {
+        // Vérifier si l'utilisateur actuel est ADMIN
+        const savedUser = localStorage.getItem('robgame_current_user');
+        if (savedUser !== 'ADMIN') {
+            showGlobalMaintenance();
+            return true;
+        }
     }
     return false;
 }
@@ -603,25 +607,27 @@ function loadUsersList() {
     const totalUsersSpan = document.getElementById('totalUsers');
     const activeUsersSpan = document.getElementById('activeUsers');
     
-    totalUsersSpan.textContent = users.length;
+    const usersArray = Object.keys(users);
+    totalUsersSpan.textContent = usersArray.length;
     activeUsersSpan.textContent = currentUser ? 1 : 0;
     
     usersList.innerHTML = '';
-    users.forEach((user, index) => {
+    usersArray.forEach((username, index) => {
+        const user = users[username];
         const userItem = document.createElement('div');
         userItem.className = 'user-item';
         userItem.innerHTML = `
             <div class="user-info-basic">
-                <span class="user-name">${user.username}</span>
+                <span class="user-name">${username}</span>
                 <span class="user-email">${user.email}</span>
-                <span class="user-status ${user.username === currentUser ? 'online' : 'offline'}">
-                    ${user.username === currentUser ? '🟢 En ligne' : '🔴 Hors ligne'}
+                <span class="user-status ${username === currentUser ? 'online' : 'offline'}">
+                    ${username === currentUser ? '🟢 En ligne' : '🔴 Hors ligne'}
                 </span>
             </div>
             <div class="user-actions">
-                <button onclick="resetUserPassword('${user.username}')" class="reset-btn">🔄 Reset MDP</button>
-                <button onclick="showUserFullDetails(${index})" class="details-btn">👁️ Détails</button>
-                <button onclick="deleteUser('${user.username}')" class="delete-btn">🗑️ Supprimer</button>
+                <button onclick="resetUserPassword('${username}')" class="reset-btn">🔄 Reset MDP</button>
+                <button onclick="showUserFullDetails('${username}')" class="details-btn">👁️ Détails</button>
+                <button onclick="deleteUser('${username}')" class="delete-btn">🗑️ Supprimer</button>
             </div>
         `;
         usersList.appendChild(userItem);
@@ -701,10 +707,8 @@ function adminMaintenanceLogin() {
     const username = document.getElementById('adminMaintenanceUsername').value;
     const password = document.getElementById('adminMaintenancePassword').value;
     
-    // Vérifier si c'est un utilisateur valide avec le bon mot de passe
-    const user = users.find(u => u.username === username && u.password === password);
-    
-    if (user && username === 'ADMIN') {
+    // Vérifier si c'est le compte ADMIN avec le bon mot de passe
+    if (username === 'ADMIN' && users['ADMIN'] && users['ADMIN'].password === password) {
         currentUser = username;
         localStorage.setItem('robgame_current_user', currentUser);
         closeAdminMaintenanceModal();
@@ -718,16 +722,16 @@ function adminMaintenanceLogin() {
 }
 
 // Fonctions de gestion des utilisateurs
-function showUserFullDetails(userIndex) {
-    const user = users[userIndex];
+function showUserFullDetails(username) {
+    const user = users[username];
     const details = `
 📋 DÉTAILS COMPLETS DE L'UTILISATEUR
 
-👤 Nom d'utilisateur: ${user.username}
+👤 Nom d'utilisateur: ${username}
 📧 Email: ${user.email}
 🔐 Mot de passe: ${user.password}
-📅 Date d'inscription: ${user.registrationDate || 'Non disponible'}
-🎮 Statut: ${user.username === currentUser ? 'En ligne' : 'Hors ligne'}
+📅 Date d'inscription: ${user.createdAt || 'Non disponible'}
+🎮 Statut: ${username === currentUser ? 'En ligne' : 'Hors ligne'}
     `;
     alert(details);
 }
@@ -736,9 +740,8 @@ function resetUserPassword(username) {
     if (confirm(`Voulez-vous réinitialiser le mot de passe de ${username}?`)) {
         const newPassword = prompt('Nouveau mot de passe:', 'password123');
         if (newPassword && newPassword.trim()) {
-            const userIndex = users.findIndex(u => u.username === username);
-            if (userIndex !== -1) {
-                users[userIndex].password = newPassword.trim();
+            if (users[username]) {
+                users[username].password = newPassword.trim();
                 localStorage.setItem('robgame_users', JSON.stringify(users));
                 alert(`Mot de passe de ${username} réinitialisé avec succès!\nNouveau mot de passe: ${newPassword.trim()}`);
                 loadUsersList();
@@ -754,7 +757,7 @@ function deleteUser(username) {
     }
     
     if (confirm(`⚠️ ATTENTION: Supprimer définitivement l'utilisateur ${username}?\nCette action est irréversible!`)) {
-        users = users.filter(u => u.username !== username);
+        delete users[username];
         localStorage.setItem('robgame_users', JSON.stringify(users));
         
         // Supprimer aussi les scores de cet utilisateur
@@ -773,7 +776,7 @@ function exportUsersData() {
     const data = {
         users: users,
         exportDate: new Date().toISOString(),
-        totalUsers: users.length
+        totalUsers: Object.keys(users).length
     };
     
     const dataStr = JSON.stringify(data, null, 2);
@@ -792,15 +795,17 @@ function exportUsersData() {
 function showUserDetails() {
     let details = '📊 DONNÉES COMPLÈTES DES UTILISATEURS\n\n';
     
-    users.forEach((user, index) => {
-        details += `${index + 1}. 👤 ${user.username}\n`;
+    const usersArray = Object.keys(users);
+    usersArray.forEach((username, index) => {
+        const user = users[username];
+        details += `${index + 1}. 👤 ${username}\n`;
         details += `   📧 Email: ${user.email}\n`;
         details += `   🔐 Mot de passe: ${user.password}\n`;
-        details += `   📅 Inscription: ${user.registrationDate || 'N/A'}\n`;
-        details += `   🎮 Statut: ${user.username === currentUser ? 'En ligne' : 'Hors ligne'}\n\n`;
+        details += `   📅 Inscription: ${user.createdAt || 'N/A'}\n`;
+        details += `   🎮 Statut: ${username === currentUser ? 'En ligne' : 'Hors ligne'}\n\n`;
     });
     
-    if (users.length === 0) {
+    if (usersArray.length === 0) {
         details += 'Aucun utilisateur inscrit.';
     }
     

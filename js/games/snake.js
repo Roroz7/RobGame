@@ -153,25 +153,30 @@ class SnakeGame {
         this.ctx.fillStyle = '#cbd5e1';
         this.ctx.fillText('Utilisez les flèches ou WASD pour bouger', this.canvas.width / 2, 100);
         this.ctx.fillText('Sur mobile: glissez dans la direction souhaitée', this.canvas.width / 2, 120);
-        this.ctx.fillText('Cliquez pour commencer', this.canvas.width / 2, 160);
+        this.ctx.fillText('Appuyez sur ESPACE ou cliquez pour commencer', this.canvas.width / 2, 160);
         
-        // Attendre un clic pour démarrer
+        // Attendre un clic ou espace pour démarrer
         this.startClickHandler = (e) => {
             this.actualStart();
         };
         
+        this.startKeyHandler = (e) => {
+            if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                this.actualStart();
+            }
+        };
+        
         addGameEventListener(this.canvas, 'click', this.startClickHandler);
+        addGameEventListener(document, 'keydown', this.startKeyHandler);
     }
     
     actualStart() {
-        // Supprimer les handlers de démarrage
-        removeAllGameEventListeners();
+        // Supprimer seulement les handlers de démarrage spécifiques
+        this.canvas.removeEventListener('click', this.startClickHandler);
+        document.removeEventListener('keydown', this.startKeyHandler);
         
-        // Remettre les contrôles de jeu
-        addGameEventListener(document, 'keydown', this.keyHandler);
-        addGameEventListener(this.canvas, 'touchstart', this.touchStartHandler);
-        addGameEventListener(this.canvas, 'touchend', this.touchEndHandler);
-        
+        // Les contrôles de jeu sont déjà configurés dans setupControls()
         this.dx = 1;
         this.dy = 0;
         this.gameRunning = true;

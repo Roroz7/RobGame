@@ -141,7 +141,7 @@ class TetrisGame {
         return {
             shape: this.pieces[randomPiece],
             x: Math.floor(this.cols / 2) - 1,
-            y: 0
+            y: -1
         };
     }
     
@@ -235,7 +235,9 @@ class TetrisGame {
                         return;
                     }
                     
-                    this.board[y][x] = this.currentPiece.shape[row][col];
+                    if (y >= 0 && y < this.rows && x >= 0 && x < this.cols) {
+                        this.board[y][x] = this.currentPiece.shape[row][col];
+                    }
                 }
             }
         }
@@ -243,6 +245,11 @@ class TetrisGame {
         this.clearLines();
         this.currentPiece = this.nextPiece;
         this.nextPiece = this.createPiece();
+        
+        // Vérifier si la nouvelle pièce peut être placée
+        if (!this.isValidPosition(this.currentPiece.shape, this.currentPiece.x, this.currentPiece.y)) {
+            this.gameOver();
+        }
     }
     
     clearLines() {
@@ -383,6 +390,7 @@ class TetrisGame {
         updateScore(this.score);
         this.start();
     }
+}
 
 function initTetrisGame() {
     tetrisGame = new TetrisGame(gameCanvas, gameContext);
